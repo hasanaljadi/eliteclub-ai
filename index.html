@@ -419,7 +419,7 @@ async function send(){
       body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:1000,messages:[{role:'system',content:SYS},...hist]})
     });
     const data=await r.json();
-    const reply=data.choices?.[0]?.message?.content||'حدث خطأ في الاستجابة.';
+    const reply=data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content ? data.choices[0].message.content : 'حدث خطأ في الاستجابة.';
     hist.push({role:'assistant',content:reply});
     document.getElementById('typ').classList.remove('show');
     apnd(reply,'ai');act(`استفسار AI: "${txt.slice(0,30)}..."`);rdash();
