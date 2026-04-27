@@ -413,9 +413,9 @@ async function send(){
   document.getElementById('typ').classList.add('show');scrl();
   try{
     const d=db();d.aic=(d.aic||0)+1;sv(d);
-    const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+    const r=await fetch('/api/chat',{
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:1000,messages:[{role:'system',content:SYS},...hist]})
     });
     const data=await r.json();
