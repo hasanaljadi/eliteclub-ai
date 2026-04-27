@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EliteClub AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --gold: #C9A84C; --gold-light: #E8C97A; --gold-dark: #9B7A2E;
+  --bg: #0A0A0A; --card: #111111; --card2: #161616;
+  --border: rgba(201,168,76,0.2); --border-h: rgba(201,168,76,0.5);
+  --text: #F0EAD6; --muted: rgba(240,234,214,0.5);
+  --ok: #2ECC71; --err: #E74C3C; --r: 14px;
+}
+body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; overflow-x:hidden; }
+.screen { display:none; min-height:100vh; }
+.screen.active { display:flex; }
+
+/* AUTH */
+#auth { flex-direction:column; align-items:center; justify-content:center; padding:2rem;
+  background:radial-gradient(ellipse at 50% 0%,rgba(201,168,76,.12) 0%,transparent 60%),#0A0A0A; }
+.a-logo { font-family:'Syne',sans-serif; font-size:11px; font-weight:700; letter-spacing:4px; color:var(--gold); margin-bottom:6px; }
+.a-title { font-family:'Syne',sans-serif; font-size:36px; font-weight:800; text-align:center; margin-bottom:6px; }
+.a-title span { color:var(--gold); }
+.a-sub { font-size:13px; color:var(--muted); text-align:center; margin-bottom:32px; }
+.a-box { width:100%; max-width:400px; background:var(--card); border:1px solid var(--border); border-radius:20px; padding:32px; }
+.tabs { display:flex; background:var(--card2); border-radius:10px; padding:4px; margin-bottom:24px; gap:4px; }
+.tab { flex:1; text-align:center; padding:8px; border-radius:8px; font-size:13px; font-weight:500; cursor:pointer; color:var(--muted); transition:.2s; }
+.tab.active { background:var(--gold); color:#000; font-weight:700; }
+.fg { margin-bottom:14px; }
+.fg label { display:block; font-size:11px; font-weight:500; color:var(--muted); margin-bottom:5px; letter-spacing:.5px; text-transform:uppercase; }
+.fg input { width:100%; background:var(--card2); border:1px solid var(--border); border-radius:10px; padding:11px 13px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:14px; outline:none; transition:.2s; }
+.fg input:focus { border-color:var(--gold); }
+.fg input::placeholder { color:rgba(240,234,214,.25); }
+.btn-p { width:100%; padding:12px; background:var(--gold); color:#000; border:none; border-radius:10px; font-family:'Syne',sans-serif; font-size:13px; font-weight:700; letter-spacing:1px; text-transform:uppercase; cursor:pointer; transition:.2s; margin-top:6px; }
+.btn-p:hover { background:var(--gold-light); }
+.amsg { font-size:12px; text-align:center; margin-top:12px; min-height:18px; color:var(--muted); }
+.amsg.e { color:var(--err); } .amsg.s { color:var(--ok); }
+
+/* APP */
+#app { flex-direction:row; }
+.sidebar { width:220px; min-width:220px; background:var(--card); border-left:1px solid var(--border); display:flex; flex-direction:column; padding:18px 0; }
+.sb-logo { padding:0 18px 18px; border-bottom:1px solid var(--border); margin-bottom:14px; }
+.sb-logo .br { font-family:'Syne',sans-serif; font-size:9px; font-weight:700; letter-spacing:3px; color:var(--gold); }
+.sb-logo .nm { font-family:'Syne',sans-serif; font-size:20px; font-weight:800; }
+.sb-logo .nm span { color:var(--gold); }
+.nav-sec { font-size:9px; font-weight:700; letter-spacing:2px; color:var(--muted); text-transform:uppercase; padding:14px 18px 5px; }
+.ni { display:flex; align-items:center; gap:9px; padding:9px 18px; cursor:pointer; color:var(--muted); font-size:13px; transition:.15s; border-right:2px solid transparent; user-select:none; }
+.ni:hover { color:var(--text); background:rgba(201,168,76,.05); }
+.ni.active { color:var(--gold); border-right-color:var(--gold); background:rgba(201,168,76,.07); font-weight:500; }
+.ni-ic { font-size:14px; width:17px; text-align:center; }
+.sb-foot { margin-top:auto; padding:14px 18px 0; border-top:1px solid var(--border); }
+.ub { display:flex; align-items:center; gap:9px; }
+.uav { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--gold-dark),var(--gold)); display:flex; align-items:center; justify-content:center; font-family:'Syne',sans-serif; font-size:12px; font-weight:800; color:#000; flex-shrink:0; }
+.un { font-size:13px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ur { font-size:10px; color:var(--gold); font-weight:500; }
+.btn-lo { width:100%; background:none; border:1px solid var(--border); color:var(--muted); border-radius:8px; padding:5px 8px; font-size:11px; cursor:pointer; margin-top:9px; transition:.15s; font-family:'DM Sans',sans-serif; }
+.btn-lo:hover { border-color:var(--err); color:var(--err); }
+
+/* MAIN */
+.main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+.topbar { padding:14px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; background:var(--bg); }
+.pt { font-family:'Syne',sans-serif; font-size:19px; font-weight:700; }
+.tr { display:flex; align-items:center; gap:10px; }
+.sdot { width:8px; height:8px; border-radius:50%; background:var(--ok); box-shadow:0 0 6px rgba(46,204,113,.6); }
+.st { font-size:12px; color:var(--muted); }
+.page { flex:1; overflow-y:auto; padding:24px; }
+.panel { display:none; } .panel.active { display:block; }
+
+/* STATS */
+.sg { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px; }
+.sc { background:var(--card); border:1px solid var(--border); border-radius:var(--r); padding:16px 18px; position:relative; overflow:hidden; }
+.sc::before { content:''; position:absolute; top:0;left:0;right:0; height:2px; background:linear-gradient(90deg,var(--gold-dark),var(--gold)); }
+.sl { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
+.sv { font-family:'Syne',sans-serif; font-size:24px; font-weight:800; }
+.ss { font-size:11px; color:var(--ok); margin-top:3px; }
+.dg { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.card { background:var(--card); border:1px solid var(--border); border-radius:var(--r); padding:18px; }
+.ct { font-family:'Syne',sans-serif; font-size:12px; font-weight:700; color:var(--gold); text-transform:uppercase; letter-spacing:1px; margin-bottom:12px; }
+.ai { display:flex; align-items:flex-start; gap:9px; padding:9px 0; border-bottom:1px solid rgba(201,168,76,.08); }
+.ai:last-child { border-bottom:none; }
+.ad { width:7px; height:7px; border-radius:50%; margin-top:5px; flex-shrink:0; background:var(--gold); }
+.at { font-size:13px; color:var(--text); line-height:1.4; }
+.at2 { font-size:11px; color:var(--muted); margin-top:2px; }
+.mr { display:flex; align-items:center; gap:9px; padding:7px 0; border-bottom:1px solid rgba(201,168,76,.08); }
+.mr:last-child { border-bottom:none; }
+.mav { width:28px; height:28px; border-radius:50%; background:var(--card2); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-family:'Syne',sans-serif; font-size:11px; font-weight:700; color:var(--gold); flex-shrink:0; }
+.mn { font-size:13px; font-weight:500; }
+.md { font-size:11px; color:var(--muted); }
+.mb { margin-left:auto; font-size:10px; font-weight:600; padding:3px 7px; border-radius:20px; }
+.ba { background:rgba(46,204,113,.15); color:var(--ok); }
+.bt { background:rgba(201,168,76,.15); color:var(--gold); }
+.empty { text-align:center; padding:36px 16px; color:var(--muted); font-size:13px; }
+
+/* CHAT */
+.chat-wrap { display:flex; flex-direction:column; height:calc(100vh - 115px); background:var(--card); border:1px solid var(--border); border-radius:var(--r); overflow:hidden; }
+.ch { padding:13px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:9px; background:var(--card2); }
+.aib { background:linear-gradient(135deg,var(--gold-dark),var(--gold)); color:#000; font-family:'Syne',sans-serif; font-size:9px; font-weight:800; letter-spacing:2px; padding:4px 9px; border-radius:20px; text-transform:uppercase; }
+.ci { flex:1; }
+.ci .an { font-family:'Syne',sans-serif; font-size:13px; font-weight:700; }
+.ci .as { font-size:11px; color:var(--muted); }
+.msgs { flex:1; overflow-y:auto; padding:18px; display:flex; flex-direction:column; gap:12px; }
+.msg { max-width:75%; padding:11px 14px; border-radius:13px; font-size:13.5px; line-height:1.6; }
+.msg.ai { background:var(--card2); border:1px solid var(--border); align-self:flex-start; border-radius:4px 13px 13px 13px; }
+.msg.me { background:linear-gradient(135deg,var(--gold-dark),var(--gold)); color:#000; font-weight:500; align-self:flex-end; border-radius:13px 13px 4px 13px; }
+.ms { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:4px; color:var(--gold); }
+.msg.me .ms { color:rgba(0,0,0,.6); }
+.cia { padding:13px 18px; border-top:1px solid var(--border); background:var(--card2); display:flex; gap:9px; align-items:flex-end; }
+.ci2 { flex:1; background:var(--bg); border:1px solid var(--border); border-radius:11px; padding:10px 13px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:13.5px; outline:none; resize:none; min-height:42px; max-height:110px; transition:.2s; }
+.ci2:focus { border-color:var(--gold); }
+.ci2::placeholder { color:rgba(240,234,214,.25); }
+.bs { width:42px; height:42px; border-radius:11px; background:var(--gold); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#000; font-size:17px; flex-shrink:0; transition:.15s; }
+.bs:hover { background:var(--gold-light); }
+.bs:disabled { opacity:.4; cursor:not-allowed; }
+.typ { display:none; align-self:flex-start; background:var(--card2); border:1px solid var(--border); border-radius:4px 13px 13px 13px; padding:11px 14px; }
+.typ.show { display:flex; gap:5px; align-items:center; }
+.td { width:6px; height:6px; border-radius:50%; background:var(--gold); animation:bounce 1.2s infinite; }
+.td:nth-child(2){animation-delay:.2s} .td:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+
+/* MEMBERS */
+.ctrl { display:flex; gap:10px; margin-bottom:18px; }
+.si { flex:1; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:9px 13px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:13px; outline:none; }
+.si:focus { border-color:var(--gold); }
+.si::placeholder { color:rgba(240,234,214,.3); }
+.mt { background:var(--card); border:1px solid var(--border); border-radius:var(--r); overflow:hidden; }
+.th { display:grid; grid-template-columns:2fr 2fr 1fr 1fr 1fr; padding:10px 18px; background:var(--card2); border-bottom:1px solid var(--border); font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+.tr2 { display:grid; grid-template-columns:2fr 2fr 1fr 1fr 1fr; padding:12px 18px; border-bottom:1px solid rgba(201,168,76,.06); align-items:center; transition:.15s; }
+.tr2:hover { background:rgba(201,168,76,.04); }
+.tr2:last-child { border-bottom:none; }
+.cn { font-size:13px; font-weight:500; }
+.ce { font-size:12px; color:var(--muted); }
+.cc { font-size:12px; color:var(--muted); }
+
+/* MESSAGES */
+.cb { background:var(--gold); color:#000; border:none; border-radius:10px; padding:9px 16px; font-family:'Syne',sans-serif; font-size:12px; font-weight:700; letter-spacing:.5px; cursor:pointer; margin-bottom:18px; transition:.15s; }
+.cb:hover { background:var(--gold-light); }
+.ml { background:var(--card); border:1px solid var(--border); border-radius:var(--r); overflow:hidden; }
+.mi { display:flex; gap:11px; padding:13px 16px; border-bottom:1px solid rgba(201,168,76,.06); cursor:pointer; transition:.15s; align-items:flex-start; }
+.mi:last-child { border-bottom:none; }
+.mi:hover { background:rgba(201,168,76,.04); }
+.mi.u { background:rgba(201,168,76,.05); }
+.miav { width:36px; height:36px; border-radius:50%; background:var(--card2); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-family:'Syne',sans-serif; font-size:12px; font-weight:700; color:var(--gold); flex-shrink:0; }
+.mb2 { flex:1; min-width:0; }
+.mm { display:flex; align-items:center; gap:7px; margin-bottom:2px; }
+.mf { font-size:13px; font-weight:600; }
+.mtm { font-size:11px; color:var(--muted); margin-left:auto; }
+.mp { font-size:12px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ud { width:7px; height:7px; border-radius:50%; background:var(--gold); flex-shrink:0; margin-top:13px; }
+
+/* MODAL */
+.mo { display:none; position:fixed; top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,.75); z-index:100; align-items:center; justify-content:center; padding:20px; }
+.mo.show { display:flex; }
+.modal { background:var(--card); border:1px solid var(--border); border-radius:18px; padding:26px; width:100%; max-width:460px; }
+.moti { font-family:'Syne',sans-serif; font-size:17px; font-weight:800; margin-bottom:18px; }
+.mc { background:none; border:none; color:var(--muted); font-size:20px; cursor:pointer; float:right; margin-top:-4px; }
+.mc:hover { color:var(--text); }
+.ma { display:flex; gap:9px; margin-top:14px; }
+.btn-s { flex:1; padding:10px; background:none; border:1px solid var(--border); color:var(--muted); border-radius:10px; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:13px; transition:.15s; }
+.btn-s:hover { border-color:var(--border-h); color:var(--text); }
+.btn-sm { flex:1; padding:10px; background:var(--gold); color:#000; border:none; border-radius:10px; cursor:pointer; font-family:'Syne',sans-serif; font-size:13px; font-weight:700; transition:.15s; }
+.btn-sm:hover { background:var(--gold-light); }
+textarea.ta { width:100%; background:var(--card2); border:1px solid var(--border); border-radius:10px; padding:11px 13px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:13.5px; outline:none; resize:vertical; min-height:90px; transition:.2s; display:block; }
+textarea.ta:focus { border-color:var(--gold); }
+textarea.ta::placeholder { color:rgba(240,234,214,.25); }
+
+/* TOAST */
+.toast { position:fixed; bottom:22px; right:22px; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:13px 18px; display:flex; align-items:center; gap:9px; font-size:13px; transform:translateY(80px); opacity:0; transition:all .3s; z-index:200; }
+.toast.show { transform:translateY(0); opacity:1; }
+.to { border-left:3px solid var(--ok); } .te { border-left:3px solid var(--err); }
+.tdot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.hint { font-size:12px; color:var(--muted); margin-bottom:18px; padding:11px 14px; background:rgba(201,168,76,.06); border:1px solid var(--border); border-right:3px solid var(--gold); border-radius:10px; line-height:1.6; }
+::-webkit-scrollbar{width:4px} ::-webkit-scrollbar-thumb{background:rgba(201,168,76,.2);border-radius:4px}
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth" class="screen active">
+  <div class="a-logo">— EliteClub —</div>
+  <div class="a-title">Elite<span>Club</span> AI</div>
+  <div class="a-sub">نظام ذكاء اصطناعي متخصص في SMC / ICT</div>
+  <div class="a-box">
+    <div class="tabs">
+      <div class="tab active" onclick="stab('login')">تسجيل الدخول</div>
+      <div class="tab" onclick="stab('reg')">إنشاء حساب</div>
+    </div>
+    <div id="lf">
+      <div class="fg"><label>البريد الإلكتروني</label><input type="email" id="le" placeholder="you@eliteclub.com"/></div>
+      <div class="fg"><label>كلمة المرور</label><input type="password" id="lp" placeholder="••••••••"/></div>
+      <button class="btn-p" onclick="login()">دخول</button>
+      <div id="lm" class="amsg"></div>
+    </div>
+    <div id="rf" style="display:none">
+      <div class="fg"><label>الاسم الكامل</label><input type="text" id="rn" placeholder="محمد علي"/></div>
+      <div class="fg"><label>البريد الإلكتروني</label><input type="email" id="re" placeholder="you@eliteclub.com"/></div>
+      <div class="fg"><label>كلمة المرور</label><input type="password" id="rp" placeholder="••••••••"/></div>
+      <button class="btn-p" onclick="reg()">إنشاء الحساب</button>
+      <div id="rm" class="amsg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="screen">
+  <div class="main">
+    <div class="topbar">
+      <div class="pt" id="pt">لوحة التحكم</div>
+      <div class="tr"><div class="sdot"></div><div class="st">النظام يعمل</div></div>
+    </div>
+    <div class="page">
+      <!-- DASHBOARD -->
+      <div id="p-dash" class="panel active">
+        <div class="sg">
+          <div class="sc"><div class="sl">الأعضاء</div><div class="sv" id="s1">0</div><div class="ss">▲ نشط</div></div>
+          <div class="sc"><div class="sl">الرسائل</div><div class="sv" id="s2">0</div><div class="ss">▲ هذا الأسبوع</div></div>
+          <div class="sc"><div class="sl">استفسارات AI</div><div class="sv" id="s3">0</div><div class="ss">▲ هذا الشهر</div></div>
+          <div class="sc"><div class="sl">آخر دخول</div><div class="sv" style="font-size:13px;margin-top:5px" id="s4">—</div><div class="ss" id="s4n">—</div></div>
+        </div>
+        <div class="dg">
+          <div class="card"><div class="ct">آخر النشاطات</div><div id="af"><div class="empty">لا توجد نشاطات بعد</div></div></div>
+          <div class="card"><div class="ct">أحدث الأعضاء</div><div id="rm2"><div class="empty">لا يوجد أعضاء بعد</div></div></div>
+        </div>
+      </div>
+      <!-- AI CHAT -->
+      <div id="p-ai" class="panel">
+        <div class="hint">المساعد الذكي متخصص في تحليل الأسواق وفق منهجية SMC/ICT — اسأله عن أي سيناريو تداول.</div>
+        <div class="chat-wrap">
+          <div class="ch">
+            <div class="aib">AI</div>
+            <div class="ci"><div class="an">EliteClub AI Analyst</div><div class="as">SMC · ICT · Market Structure</div></div>
+            <div class="sdot"></div>
+          </div>
+          <div class="msgs" id="msgs">
+            <div class="msg ai"><div class="ms">EliteClub AI</div>مرحباً 👋 أنا مساعدك الذكي المتخصص في تحليل الأسواق وفق منهجية Smart Money. كيف يمكنني مساعدتك اليوم؟</div>
+          </div>
+          <div class="typ" id="typ"><div class="td"></div><div class="td"></div><div class="td"></div></div>
+          <div class="cia">
+            <textarea class="ci2" id="cin" placeholder="اكتب سؤالك... مثلاً: ما هو Order Block؟" rows="1" onkeydown="ck(event)"></textarea>
+            <button class="bs" id="sb" onclick="send()">➤</button>
+          </div>
+        </div>
+      </div>
+      <!-- MEMBERS -->
+      <div id="p-mem" class="panel">
+        <div class="ctrl"><input class="si" id="ms" placeholder="ابحث عن عضو..." oninput="fmem()"/></div>
+        <div class="mt">
+          <div class="th"><span>الاسم</span><span>البريد</span><span>الحالة</span><span>النوع</span><span>الانضمام</span></div>
+          <div id="ml2"><div class="empty">لا يوجد أعضاء مسجلون بعد</div></div>
+        </div>
+      </div>
+      <!-- MESSAGES -->
+      <div id="p-msg" class="panel">
+        <button class="cb" onclick="showC()">+ إرسال رسالة للفريق</button>
+        <div class="ml" id="msglist"><div class="empty">لا توجد رسائل بعد</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="sidebar">
+    <div class="sb-logo"><div class="br">Trading Platform</div><div class="nm">Elite<span>Club</span></div></div>
+    <div class="nav-sec">الرئيسية</div>
+    <div class="ni active" onclick="nav('dash',this)"><span class="ni-ic">◈</span> لوحة التحكم</div>
+    <div class="ni" onclick="nav('ai',this)"><span class="ni-ic">◎</span> مساعد AI</div>
+    <div class="nav-sec">الفريق</div>
+    <div class="ni" onclick="nav('mem',this)"><span class="ni-ic">◐</span> الأعضاء</div>
+    <div class="ni" onclick="nav('msg',this)"><span class="ni-ic">◷</span> الرسائل</div>
+    <div class="sb-foot">
+      <div class="ub">
+        <div class="uav" id="uav">H</div>
+        <div><div class="un" id="uname">Hasan</div><div class="ur">Admin · EliteClub</div></div>
+      </div>
+      <button class="btn-lo" onclick="logout()">تسجيل الخروج</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="mo" id="cm">
+  <div class="modal">
+    <button class="mc" onclick="hideC()">×</button>
+    <div class="moti">إرسال رسالة للفريق</div>
+    <div class="fg"><label>المستقبل</label><input type="text" id="mto" placeholder="اسم العضو أو الكل"/></div>
+    <div class="fg"><label>الموضوع</label><input type="text" id="msub" placeholder="تحليل Gold اليوم..."/></div>
+    <div class="fg"><label>الرسالة</label><textarea class="ta" id="mbody" placeholder="اكتب رسالتك هنا..."></textarea></div>
+    <div class="ma"><button class="btn-s" onclick="hideC()">إلغاء</button><button class="btn-sm" onclick="sendMsg()">إرسال</button></div>
+  </div>
+</div>
+<div class="toast" id="toast"><div class="tdot" id="tdot"></div><span id="ttxt">تم</span></div>
+
+<script>
+const K='ec_db';
+const GROQ_KEY='GROQ_API_KEY_HERE';
+const SYS=`أنت "EliteClub AI"، مساعد تداول احترافي متخصص في منهجية Smart Money Concepts (SMC) و ICT.
+أجب دائماً بالعربية بأسلوب احترافي وموجز. تخصصك:
+- تحليل هيكل السوق: BOS, CHoCH, Market Structure
+- السيولة وصيد الوقفات: Liquidity, Stop Hunt, Equal Highs/Lows
+- مناطق الاهتمام: Order Blocks, Fair Value Gaps, Imbalances, Breaker Blocks
+- تعدد الإطارات الزمنية: Multi-Timeframe Analysis (HTF to LTF)
+- نفسية التداول وإدارة رأس المال
+اجعل إجاباتك منظمة وقابلة للتطبيق المباشر. لا تعطِ توصيات مالية مباشرة.`;
+
+function db(){try{return JSON.parse(localStorage.getItem(K))||{users:[],messages:[],aic:0,acts:[]}}catch{return{users:[],messages:[],aic:0,acts:[]}}}
+function sv(d){localStorage.setItem(K,JSON.stringify(d))}
+function act(t){const d=db();d.acts=d.acts||[];d.acts.unshift({t,time:new Date().toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'})});if(d.acts.length>20)d.acts.pop();sv(d)}
+
+let cu=null,hist=[];
+
+function stab(t){
+  document.querySelectorAll('.tab').forEach((x,i)=>x.classList.toggle('active',(t==='login'&&i===0)||(t==='reg'&&i===1)));
+  document.getElementById('lf').style.display=t==='login'?'block':'none';
+  document.getElementById('rf').style.display=t==='reg'?'block':'none';
+}
+
+function reg(){
+  const n=document.getElementById('rn').value.trim(),e=document.getElementById('re').value.trim(),p=document.getElementById('rp').value;
+  const m=document.getElementById('rm');
+  if(!n||!e||!p){m.className='amsg e';m.textContent='يرجى ملء جميع الحقول';return}
+  const d=db();
+  if(d.users.find(u=>u.email===e)){m.className='amsg e';m.textContent='هذا البريد مسجل مسبقاً';return}
+  const u={id:Date.now(),name:n,email:e,pass:p,role:d.users.length===0?'admin':'member',joined:new Date().toLocaleDateString('ar'),last:new Date().toLocaleString('ar')};
+  d.users.push(u);sv(d);act(`انضم ${n} إلى المنصة`);
+  m.className='amsg s';m.textContent='تم إنشاء الحساب! يمكنك الدخول الآن';
+  setTimeout(()=>stab('login'),1200);
+}
+
+function login(){
+  const e=document.getElementById('le').value.trim(),p=document.getElementById('lp').value;
+  const m=document.getElementById('lm');
+  if(!e||!p){m.className='amsg e';m.textContent='يرجى إدخال البيانات';return}
+  const d=db(),u=d.users.find(u=>u.email===e&&u.pass===p);
+  if(!u){m.className='amsg e';m.textContent='بيانات غير صحيحة';return}
+  u.last=new Date().toLocaleString('ar');sv(d);act(`سجّل ${u.name} دخوله`);cu=u;launch(u);
+}
+
+function launch(u){
+  document.getElementById('auth').classList.remove('active');
+  document.getElementById('app').classList.add('active');
+  const i=u.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('uav').textContent=i;
+  document.getElementById('uname').textContent=u.name;
+  rdash();
+}
+
+function logout(){cu=null;hist=[];document.getElementById('app').classList.remove('active');document.getElementById('auth').classList.add('active');document.getElementById('le').value='';document.getElementById('lp').value='';document.getElementById('lm').textContent='';}
+
+function nav(p,el){
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));el.classList.add('active');
+  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+  document.getElementById('p-'+p).classList.add('active');
+  const ts={dash:'لوحة التحكم',ai:'مساعد AI',mem:'الأعضاء',msg:'الرسائل'};
+  document.getElementById('pt').textContent=ts[p]||'';
+  if(p==='mem')rmem();if(p==='msg')rmsgs();if(p==='dash')rdash();
+}
+
+function rdash(){
+  const d=db();
+  document.getElementById('s1').textContent=d.users.length;
+  document.getElementById('s2').textContent=(d.messages||[]).length;
+  document.getElementById('s3').textContent=d.aic||0;
+  const l=d.users[d.users.length-1];
+  if(l){document.getElementById('s4').textContent=l.last||'—';document.getElementById('s4n').textContent=l.name;}
+  const af=document.getElementById('af');
+  if(d.acts&&d.acts.length){af.innerHTML=d.acts.slice(0,5).map(a=>`<div class="ai"><div class="ad"></div><div><div class="at">${a.t}</div><div class="at2">${a.time}</div></div></div>`).join('');}
+  else af.innerHTML='<div class="empty">لا توجد نشاطات بعد</div>';
+  const rm=document.getElementById('rm2');
+  if(d.users.length){rm.innerHTML=d.users.slice(-4).reverse().map(u=>`<div class="mr"><div class="mav">${u.name[0]}</div><div><div class="mn">${u.name}</div><div class="md">${u.joined}</div></div><span class="mb ${u.role==='admin'?'ba':'bt'}">${u.role==='admin'?'Admin':'Member'}</span></div>`).join('');}
+  else rm.innerHTML='<div class="empty">لا يوجد أعضاء بعد</div>';
+}
+
+function rmem(f){
+  const d=db();let us=d.users;
+  if(f)us=us.filter(u=>u.name.includes(f)||u.email.includes(f));
+  const l=document.getElementById('ml2');
+  if(!us.length){l.innerHTML='<div class="empty">لا يوجد نتائج</div>';return}
+  l.innerHTML=us.map(u=>`<div class="tr2"><span class="cn">${u.name}</span><span class="ce">${u.email}</span><span class="cc"><span class="mb ba">نشط</span></span><span class="cc"><span class="mb ${u.role==='admin'?'ba':'bt'}">${u.role==='admin'?'Admin':'Member'}</span></span><span class="cc">${u.joined}</span></div>`).join('');
+}
+
+function fmem(){rmem(document.getElementById('ms').value.trim())}
+
+function rmsgs(){
+  const d=db(),l=document.getElementById('msglist');
+  if(!d.messages||!d.messages.length){l.innerHTML='<div class="empty">لا توجد رسائل بعد</div>';return}
+  l.innerHTML=d.messages.slice().reverse().map((m,i)=>`<div class="mi ${i<2?'u':''}"><div class="miav">${m.from[0]}</div><div class="mb2"><div class="mm"><span class="mf">${m.from}</span><span class="mtm">${m.time}</span></div><div class="mp"><b>${m.subject}</b> — ${m.body.slice(0,55)}${m.body.length>55?'...':''}</div></div>${i<2?'<div class="ud"></div>':''}</div>`).join('');
+}
+
+function showC(){document.getElementById('cm').classList.add('show')}
+function hideC(){document.getElementById('cm').classList.remove('show')}
+
+function sendMsg(){
+  const to=document.getElementById('mto').value.trim(),sub=document.getElementById('msub').value.trim(),body=document.getElementById('mbody').value.trim();
+  if(!to||!sub||!body){toast('يرجى ملء جميع الحقول',false);return}
+  const d=db();d.messages=d.messages||[];
+  d.messages.push({from:cu?cu.name:'Admin',to,subject:sub,body,time:new Date().toLocaleString('ar')});sv(d);
+  act(`أرسل ${cu?cu.name:'Admin'} رسالة: "${sub}"`);
+  hideC();document.getElementById('mto').value='';document.getElementById('msub').value='';document.getElementById('mbody').value='';
+  rmsgs();toast('تم إرسال الرسالة بنجاح',true);
+}
+
+function toast(txt,ok){
+  const t=document.getElementById('toast'),d=document.getElementById('tdot');
+  document.getElementById('ttxt').textContent=txt;
+  t.className='toast show '+(ok?'to':'te');d.style.background=ok?'var(--ok)':'var(--err)';
+  setTimeout(()=>t.className='toast',2800);
+}
+
+async function send(){
+  const inp=document.getElementById('cin'),txt=inp.value.trim();
+  if(!txt)return;
+  inp.value='';document.getElementById('sb').disabled=true;
+  apnd(txt,'me');hist.push({role:'user',content:txt});
+  document.getElementById('typ').classList.add('show');scrl();
+  try{
+    const d=db();d.aic=(d.aic||0)+1;sv(d);
+    const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
+      body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:1000,messages:[{role:'system',content:SYS},...hist]})
+    });
+    const data=await r.json();
+    const reply=data.choices?.[0]?.message?.content||'حدث خطأ في الاستجابة.';
+    hist.push({role:'assistant',content:reply});
+    document.getElementById('typ').classList.remove('show');
+    apnd(reply,'ai');act(`استفسار AI: "${txt.slice(0,30)}..."`);rdash();
+  }catch(e){
+    document.getElementById('typ').classList.remove('show');
+    apnd('⚠️ تعذّر الاتصال. تأكد من الإعداد.','ai');
+  }
+  document.getElementById('sb').disabled=false;
+}
+
+function apnd(txt,r){
+  const c=document.getElementById('msgs'),d=document.createElement('div');
+  d.className='msg '+r;
+  const s=document.createElement('div');s.className='ms';
+  s.textContent=r==='ai'?'EliteClub AI':(cu?cu.name:'أنت');
+  d.appendChild(s);const t=document.createElement('div');t.textContent=txt;d.appendChild(t);
+  c.appendChild(d);scrl();
+}
+
+function scrl(){const c=document.getElementById('msgs');c.scrollTop=c.scrollHeight}
+function ck(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}}
+</script>
+</body>
+</html>
